@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "driver/gpio.h"
+#include "freertos/FreeRTOS.h"
 #include "include/console.h"
 #include "include/hx711.h"
 #include "include/storage.h"

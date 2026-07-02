@@ -2,6 +2,9 @@
 
 #include <stdint.h>
 
+#define NVS_NAMESPACE "storage"
+#define NVS_KEY_TARE  "hx711_offset"
+
 /**
  * @function storage_init
  * @description Initializes the NVS flash partition.

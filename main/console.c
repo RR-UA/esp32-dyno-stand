@@ -18,11 +18,12 @@ static void IRAM_ATTR jtag_isr_handler(void *arg) {
 
     usb_serial_jtag_ll_clr_intsts_mask(USB_SERIAL_JTAG_INTR_SERIAL_OUT_RECV_PKT);
 
-    if (action && tare_sem) {
-        BaseType_t wakeup = pdFALSE;
-        xSemaphoreGiveFromISR(tare_sem, &wakeup);
-        if (wakeup) portYIELD_FROM_ISR();
-    }
+    if (!action || !tare_sem) return;
+
+    BaseType_t wakeup = pdFALSE;
+    xSemaphoreGiveFromISR(tare_sem, &wakeup);
+
+    if (wakeup) portYIELD_FROM_ISR();
 }
 
 /**

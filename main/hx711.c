@@ -6,10 +6,10 @@
 #include "freertos/semphr.h"
 #include "rom/ets_sys.h"
 
-static long filter_buf[FILTER_SIZE] = { 0 };
-static int filter_idx               = 0;
+static int32_t filter_buf[FILTER_SIZE] = { 0 };
+static int filter_idx                  = 0;
 
-static long hx711_offset = 0;
+static int32_t hx711_offset = 0;
 static SemaphoreHandle_t hx711_data_ready_sem;
 
 /**
@@ -48,7 +48,7 @@ static int32_t hx711_read_raw(void) {
     xSemaphoreTake(hx711_data_ready_sem, 0);
     gpio_intr_enable(HX711_DOT_PIN);
 
-    if (value & 0x800000) value |= 0xFF000000;
+    if (value & 0x800000) value |= (int32_t)0xFF000000;
 
     return value;
 }
@@ -58,10 +58,9 @@ static int32_t hx711_read_raw(void) {
  * @param samples Number of readings to average.
  * @return Average raw ADC value.
  */
-static long hx711_read_avg(int samples) {
-    long sum = 0;
-    for (int i = 0; i < samples; i++)
-        sum += hx711_read_raw();
+static int32_t hx711_read_avg(const int samples) {
+    int32_t sum = 0;
+    for (int i = 0; i < samples; i++) sum += hx711_read_raw();
 
     return sum / samples;
 }
@@ -91,16 +90,15 @@ void hx711_init(void) {
 int32_t hx711_tare(void) {
     vTaskDelay(pdMS_TO_TICKS(500));
     hx711_offset = hx711_read_avg(FILTER_SIZE);
-    for (int i = 0; i < FILTER_SIZE; i++)
-        filter_buf[i] = hx711_offset;
+    
+    for (int i = 0; i < FILTER_SIZE; i++) filter_buf[i] = hx711_offset;
 
-    return (int32_t)hx711_offset;
+    return hx711_offset;
 }
 
-void hx711_set_offset(int32_t offset) {
+void hx711_set_offset(const int32_t offset) {
     hx711_offset = offset;
-    for (int i = 0; i < FILTER_SIZE; i++)
-        filter_buf[i] = hx711_offset;
+    for (int i = 0; i < FILTER_SIZE; i++) filter_buf[i] = hx711_offset;
 }
 
 /**
@@ -111,11 +109,10 @@ void hx711_set_offset(int32_t offset) {
 int hx711_read_weight(void) {
     filter_buf[filter_idx] = hx711_read_avg(BLOCK_SAMPLES);
     filter_idx             = (filter_idx + 1) % FILTER_SIZE;
+    int32_t sum            = 0;
 
-    long long sum = 0;
-    for (int i = 0; i < FILTER_SIZE; i++)
-        sum += filter_buf[i];
+    for (int i = 0; i < FILTER_SIZE; i++) sum += filter_buf[i];
 
-    const long moving_avg = (long)(sum / FILTER_SIZE);
-    return (int32_t)((moving_avg - hx711_offset) / SCALE_FACTOR);
+    const int32_t moving_avg = sum / FILTER_SIZE;
+    return (int32_t)((float)(moving_avg - hx711_offset) / SCALE_FACTOR);
 }
