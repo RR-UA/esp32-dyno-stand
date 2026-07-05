@@ -3,6 +3,9 @@
 #include "nvs.h"
 #include "nvs_flash.h"
 
+/**
+ * @brief Initializes the NVS flash partition and handles automated defragmentation/recovery.
+ */
 void storage_init(void) {
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -12,6 +15,11 @@ void storage_init(void) {
     ESP_ERROR_CHECK(ret);
 }
 
+/**
+ * @brief Loads the runtime calibration offset from the non-volatile storage block.
+ * @param offset Destination pointer for the retrieved offset integer.
+ * @return True if key lookup was successful and data fetched, false otherwise.
+ */
 bool storage_load_tare(int32_t *offset) {
     nvs_handle_t nvs_handle;
     if (nvs_open(NVS_NAMESPACE, NVS_READONLY, &nvs_handle) != ESP_OK) return false;
@@ -21,6 +29,10 @@ bool storage_load_tare(int32_t *offset) {
     return (err == ESP_OK);
 }
 
+/**
+ * @brief Commits the new runtime calibration offset to the non-volatile flash storage block.
+ * @param offset The offset integer payload to persist.
+ */
 void storage_save_tare(const int32_t offset) {
     nvs_handle_t nvs_handle;
 

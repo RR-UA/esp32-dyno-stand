@@ -4,6 +4,6 @@
 #define DEBOUNCE_US 200000
 
 /**
- * Initializes button GPIO with interrupt on falling edge, shares tare_sem with console.
+ * @brief Initializes the button GPIO with a falling edge interrupt and binds the ISR.
  */
 void button_init(void);

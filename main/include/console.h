@@ -5,7 +5,6 @@
 extern SemaphoreHandle_t tare_sem;
 
 /**
- * @function console_init
- * @description Initializes the USB serial console task for handling software commands.
+ * @brief Initializes the USB serial JTAG peripheral hardware and registers its receive interrupt.
  */
 void console_init(void);

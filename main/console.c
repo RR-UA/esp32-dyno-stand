@@ -6,8 +6,8 @@
 SemaphoreHandle_t tare_sem = NULL;
 
 /**
- * @function jtag_isr_handler
- * @description Low-level ISR to capture 'T' from USB FIFO and give the sync semaphore.
+ * @brief Low-level JTAG ISR that captures the 'T' command byte from the hardware RX FIFO.
+ * @param arg Unused ISR argument context.
  */
 static void IRAM_ATTR jtag_isr_handler(void *arg) {
     uint8_t rx_byte;
@@ -27,8 +27,7 @@ static void IRAM_ATTR jtag_isr_handler(void *arg) {
 }
 
 /**
- * @function console_init
- * @description Initializes the USB serial console task for handling software commands.
+ * @brief Initializes the USB serial JTAG peripheral hardware and registers its receive interrupt.
  */
 void console_init(void) {
     tare_sem = xSemaphoreCreateBinary();

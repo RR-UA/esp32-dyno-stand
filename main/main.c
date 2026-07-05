@@ -10,8 +10,7 @@
 #include "include/storage.h"
 
 /**
- * @function app_main
- * @description Application entry point. Prepares storage and HX711, handling tare persistence lifecycle.
+ * @brief Application entry point. Prepares storage and HX711, handling tare persistence lifecycle.
  */
 void app_main(void) {
     console_init();

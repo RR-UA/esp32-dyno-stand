@@ -7,7 +7,8 @@
 static int64_t last_press_us = 0;
 
 /**
- * ISR on button falling edge, debounced, gives tare_sem.
+ * @brief ISR triggered on button falling edge, applies software debounce, and signals the tare semaphore.
+ * @param arg Unused ISR argument context.
  */
 static void IRAM_ATTR button_isr_handler(void *arg) {
     const int64_t now = esp_timer_get_time();
@@ -20,7 +21,7 @@ static void IRAM_ATTR button_isr_handler(void *arg) {
 }
 
 /**
- * Initializes button GPIO with interrupt on falling edge, shares tare_sem with console.
+ * @brief Initializes the button GPIO with a falling edge interrupt and binds the ISR.
  */
 void button_init(void) {
     const gpio_config_t cfg = {

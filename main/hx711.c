@@ -9,11 +9,12 @@
 static int32_t filter_buf[FILTER_SIZE] = { 0 };
 static int filter_idx                  = 0;
 
-static int32_t hx711_offset = 0;
+static int32_t hx711_offset  = 0;
 static SemaphoreHandle_t hx711_data_ready_sem;
 
 /**
- * ISR triggered on DOT falling edge, signals that conversion is ready.
+ * @brief Data-ready ISR triggered on the DOUT falling edge to release the blocking semaphore.
+ * @param arg Unused ISR argument context.
  */
 static void IRAM_ATTR hx711_isr_handler(void *arg) {
     BaseType_t high_task_wakeup = pdFALSE;
@@ -22,7 +23,7 @@ static void IRAM_ATTR hx711_isr_handler(void *arg) {
 }
 
 /**
- * Reads one raw 24-bit conversion from HX711 (gain 128, channel A).
+ * @brief Performs critical timing-safe bit-banging to extract a 24-bit raw signed sample from the HX711.
  * @return Sign-extended 32-bit raw ADC value.
  */
 static int32_t hx711_read_raw(void) {
@@ -54,9 +55,9 @@ static int32_t hx711_read_raw(void) {
 }
 
 /**
- * Averages N raw readings.
- * @param samples Number of readings to average.
- * @return Average raw ADC value.
+ * @brief Accumulates multiple rapid raw samples and computes their mathematical average.
+ * @param samples Total number of raw conversion sequences to average.
+ * @return Calculated mean raw ADC value.
  */
 static int32_t hx711_read_avg(const int samples) {
     int32_t sum = 0;
@@ -65,6 +66,9 @@ static int32_t hx711_read_avg(const int samples) {
     return sum / samples;
 }
 
+/**
+ * @brief Initializes GPIO pins and structures for synchronous HX711 communication.
+ */
 void hx711_init(void) {
     const gpio_config_t dout_cfg = {
         .pin_bit_mask = 1ULL << HX711_DOT_PIN,
@@ -87,6 +91,10 @@ void hx711_init(void) {
     gpio_isr_handler_add(HX711_DOT_PIN, hx711_isr_handler, NULL);
 }
 
+/**
+ * @brief Measures the zero-point baseline, fills the filter pipeline, and returns the offset.
+ * @return Calculated zero-point offset value.
+ */
 int32_t hx711_tare(void) {
     vTaskDelay(pdMS_TO_TICKS(500));
     hx711_offset = hx711_read_avg(FILTER_SIZE);
@@ -96,15 +104,18 @@ int32_t hx711_tare(void) {
     return hx711_offset;
 }
 
+/**
+ * @brief Manually overrides the internal zero-point offset and primes the filter buffer.
+ * @param offset Target zero-point offset value.
+ */
 void hx711_set_offset(const int32_t offset) {
     hx711_offset = offset;
     for (int i = 0; i < FILTER_SIZE; i++) filter_buf[i] = hx711_offset;
 }
 
 /**
- * @function hx711_read_weight
- * @description Processes cascaded filtering using block averaging and a moving window.
- * @return {int} Fully calibrated stable weight in grams.
+ * @brief Processes cascaded filtering using block averaging and a moving window.
+ * @return Fully calibrated stable weight in grams.
  */
 int hx711_read_weight(void) {
     filter_buf[filter_idx] = hx711_read_avg(BLOCK_SAMPLES);
@@ -113,6 +124,5 @@ int hx711_read_weight(void) {
 
     for (int i = 0; i < FILTER_SIZE; i++) sum += filter_buf[i];
 
-    const int32_t moving_avg = sum / FILTER_SIZE;
-    return (int32_t)((float)(moving_avg - hx711_offset) / SCALE_FACTOR);
+    return (sum / FILTER_SIZE) - hx711_offset;
 }

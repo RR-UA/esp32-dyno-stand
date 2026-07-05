@@ -2,26 +2,23 @@
 
 #include <stdint.h>
 
-#define NVS_NAMESPACE "storage"
-#define NVS_KEY_TARE  "hx711_offset"
+#define NVS_NAMESPACE  "storage"
+#define NVS_KEY_TARE   "hx711_offset"
 
 /**
- * @function storage_init
- * @description Initializes the NVS flash partition.
+ * @brief Initializes the NVS flash partition and handles automated defragmentation/recovery.
  */
 void storage_init(void);
 
 /**
- * @function storage_load_tare
- * @description Loads the saved tare offset from NVS.
- * @param {int32_t*} offset Pointer to store the retrieved offset value.
- * @return {bool} True if the offset was successfully loaded, false otherwise.
+ * @brief Loads the runtime calibration offset from the non-volatile storage block.
+ * @param offset Destination pointer for the retrieved offset integer.
+ * @return True if key lookup was successful and data fetched, false otherwise.
  */
 bool storage_load_tare(int32_t *offset);
 
 /**
- * @function storage_save_tare
- * @description Saves the tare offset value to NVS.
- * @param {int32_t} offset The offset value to store.
+ * @brief Commits the new runtime calibration offset to the non-volatile flash storage block.
+ * @param offset The offset integer payload to persist.
  */
 void storage_save_tare(int32_t offset);
